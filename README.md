@@ -1,3 +1,5 @@
 # EMC201 Game Repository
 
-i like gameing!!
+## 23/05/2023
+
+Initial project setup
