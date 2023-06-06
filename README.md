@@ -1,4 +1,4 @@
-# RUN
+# WAKE UP
 
 a short horror text adventure game
 
