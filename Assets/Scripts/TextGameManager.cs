@@ -148,7 +148,10 @@ public class TextGameManager : MonoBehaviour
     {
         m_gameText = "You enter a dark hallway.\nThe air is humid and the walls and floor are wet\nYou hear clanking in the distance.";
 
-        AddChoices(new());
+        AddChoices(new()
+        {
+            new( "Walk forward", () => { }),
+        });
     }
 
     #endregion
