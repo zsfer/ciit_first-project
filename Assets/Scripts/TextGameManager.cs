@@ -26,9 +26,11 @@ public class TextGameManager : MonoBehaviour
 
     [Header("Game")]
     [SerializeField] [TextArea(3, 50)] private string m_gameText = string.Empty;
-    [SerializeField] private int m_level = 1; 
-    
+    private bool m_hasGameStarted = false;
+    private bool m_paused = false;
+
     [Header("UI")]
+    [SerializeField] private TextMeshProUGUI m_menuTextUI;
     [SerializeField] private TextMeshProUGUI m_gameTextUI;
     [SerializeField] private TextMeshProUGUI m_healthTextUI;
     [SerializeField] private TextMeshProUGUI m_staminaTextUI;
@@ -43,9 +45,15 @@ public class TextGameManager : MonoBehaviour
 
     public void StartGame()
     {
+        m_hasGameStarted = true;
         m_menuUI.SetActive(false);
         m_gameUI.SetActive(true);
         Lvl1_Start();
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
     }
 
     private void Update()
@@ -57,6 +65,12 @@ public class TextGameManager : MonoBehaviour
             m_gameText = "You got too injured and succumbed to your wounds.";
             m_choicesGroupUI.SetActive(false);
         }
+
+        if (m_hasGameStarted)
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+                m_paused = !m_paused;
+        }
     }
 
     void UpdateUI()
@@ -65,6 +79,12 @@ public class TextGameManager : MonoBehaviour
         m_staminaTextUI.text = Stamina.ToString();
 
         m_gameTextUI.text = m_gameText;
+
+        if (!m_hasGameStarted) return;
+
+        m_menuUI.SetActive(m_paused);
+        m_gameUI.SetActive(!m_paused);
+        m_menuTextUI.text = m_paused ? "Paused" : "Game";
     }
 
 
