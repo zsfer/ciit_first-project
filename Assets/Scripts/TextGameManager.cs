@@ -2,6 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
+using System;
+using System.Drawing.Text;
+
+public class Choice
+{
+    public string Text { get; set; }
+    public Action OnClick { get; set; }
+
+    public Choice(string text, Action onClick)
+    {
+        Text = text;
+        OnClick = onClick;
+    }
+}
 
 public class TextGameManager : MonoBehaviour
 {
@@ -18,14 +33,18 @@ public class TextGameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI m_healthTextUI;
     [SerializeField] private TextMeshProUGUI m_staminaTextUI;
     [SerializeField] private GameObject m_choicesGroupUI;
+    [SerializeField] private GameObject m_menuUI;
+    [SerializeField] private GameObject m_gameUI;
 
     [Space]
-    [SerializeField] private List<GameObject> m_levelChoices = new();
-
+    [SerializeField] private GameObject m_choiceButtonPrefab;
+    
     private readonly Dictionary<string, dynamic> m_flags = new();
 
-    void Start()
+    public void StartGame()
     {
+        m_menuUI.SetActive(false);
+        m_gameUI.SetActive(true);
         Lvl1_Start();
     }
 
@@ -53,8 +72,14 @@ public class TextGameManager : MonoBehaviour
 
     public void Lvl1_Start()
     {
-        SetLevel(1);
         m_gameText = "There is a door in front of me.\r\nI can feel a small breeze coming from the window beside the door.";
+
+        AddChoices(new()
+        {
+            new( "Open door", Lvl1_OpenDoor ),
+            new( "Open window", Lvl1_OpenWindow ),
+            new( "Wait", Lvl1_Wait ),
+        });
     }
 
     public void Lvl1_OpenDoor()
@@ -70,12 +95,15 @@ public class TextGameManager : MonoBehaviour
             m_gameText = "The door won't budge.";
             Stamina -= 1;
         }
-        else
+        else if (!GetFlag<bool>("is_door_open"))
         {
             m_gameText = "You open the door using the key.";
-            GameObject.Find("btn_Choice1").GetComponentInChildren<TextMeshProUGUI>().text = "Go through door";
             SetFlag("is_door_open", true);
+
+            UpdateChoice(0, "Go through door");
             Stamina -= 1;
+
+            return;
         }
 
         if (GetFlag<bool>("is_door_open"))
@@ -118,25 +146,41 @@ public class TextGameManager : MonoBehaviour
 
     public void Lvl2_Start()
     {
-        SetLevel(2);
         m_gameText = "You enter a dark hallway.\nThe air is humid and the walls and floor are wet\nYou hear clanking in the distance.";
+
+        AddChoices(new());
     }
 
     #endregion
 
-    public void SetLevel(int level)
+    public void AddChoices(List<Choice> choices)
     {
-        m_level = level;
-        for (int i = 0; i < m_levelChoices.Count; i++)
+        foreach (Transform child in m_choicesGroupUI.transform)
         {
-            if (i == m_level - 1)
-            {
-                m_levelChoices[i].SetActive(true);
-                continue;
-            }
-
-            m_levelChoices[i].SetActive(false);
+            Destroy(child.gameObject);
         }
+
+        foreach (var choice in choices)
+        {
+            var btn = Instantiate(m_choiceButtonPrefab, m_choicesGroupUI.transform).GetComponent<Button>();
+            btn.GetComponentInChildren<TextMeshProUGUI>().text = choice.Text;
+
+            btn.onClick.AddListener(() => choice.OnClick());
+        }
+    }
+    public void UpdateChoice(int choiceIndex, string choiceText)
+    {
+        var btn = m_choicesGroupUI.transform.GetChild(choiceIndex);
+        btn.GetComponentInChildren<TextMeshProUGUI>().text = choiceText;
+    }
+
+    public void UpdateChoice(int choiceIndex, Choice newChoice)
+    {
+        var btn = m_choicesGroupUI.transform.GetChild(choiceIndex);
+        btn.GetComponent<Button>().onClick.RemoveAllListeners();
+        btn.GetComponent<Button>().onClick.AddListener(() => newChoice.OnClick());
+
+        btn.GetComponentInChildren<TextMeshProUGUI>().text = newChoice.Text;
     }
 
     public T GetFlag<T>(string key)
