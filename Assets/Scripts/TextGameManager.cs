@@ -48,6 +48,10 @@ public class TextGameManager : MonoBehaviour
 
     [Space]
     [SerializeField] private GameObject m_choiceButtonPrefab;
+
+    [Header("Scares")]
+    [SerializeField] GameObject m_scareUI;
+    [SerializeField] List<Sprite> m_scareSprites;
     
     private readonly Dictionary<string, dynamic> m_flags = new();
 
@@ -262,9 +266,21 @@ public class TextGameManager : MonoBehaviour
         m_isGameOver = true;
         m_hasGameStarted = false;
 
+        StartCoroutine(Scare(message));
+    }
+
+    IEnumerator Scare(string message)
+    {
+        var rndScare = m_scareSprites[UnityEngine.Random.Range(0, m_scareSprites.Count)];
+        m_scareUI.GetComponent<Image>().sprite = rndScare;
+        m_gameUI.SetActive(false);
+        m_scareUI.SetActive(true);
+
+        yield return new WaitForSeconds(5);
+
         m_gameOverTextUI.text = message;
         m_gameOverUI.SetActive(true);
-        m_gameUI.SetActive(false);
+        m_scareUI.SetActive(false);
     }
 
     #region Util Functions
